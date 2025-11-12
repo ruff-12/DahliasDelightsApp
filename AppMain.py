@@ -234,5 +234,11 @@ class AppMain:
 
         return message, status
 
+    def get_product_dataframe(self, product_name):
+        file = f"{self.path}/products/{product_name}.csv"
+        df = pd.read_csv(file)
+
+        return df
+
 if __name__ == "__main__":
     main = AppMain()

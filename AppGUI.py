@@ -1,6 +1,7 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QWidget, QVBoxLayout, QPushButton, QLabel, QFrame, \
-    QComboBox, QCompleter, QLineEdit, QGridLayout, QMessageBox, QTableWidget, QHeaderView
+from PySide6.QtWidgets import (QApplication, QMainWindow, QHBoxLayout, QWidget, QVBoxLayout, QPushButton, QLabel,
+                               QFrame, QComboBox, QCompleter, QLineEdit, QGridLayout, QMessageBox, QTableWidget,
+                               QHeaderView, QDialog, QTableWidgetItem)
 from AppMain import AppMain
 
 
@@ -11,7 +12,7 @@ class AppGUI(QMainWindow):
         self.main = AppMain()
         # window title and size
         self.setWindowTitle("Dahlia's Delights")
-        self.setGeometry(100, 100, 1000, 800)  # x, y, width, height
+        self.setGeometry(100, 100, 1000, 700)  # x, y, width, height
         # set main widget and layout
         main_layout = QHBoxLayout()
         main_widget = QWidget()
@@ -501,6 +502,9 @@ class AppGUI(QMainWindow):
 
         self.set_message_box(f"\"{product}\" values successfully pulled", True)
 
+        popup = TablePopup(product, self)
+        popup.exec()
+
     def add_costing_table_row(self):
         row_position = self.costing_table.rowCount()
         self.costing_table.insertRow(row_position)
@@ -614,6 +618,63 @@ class AppGUI(QMainWindow):
         message, status = self.main.save_product_costing(product, pieces, multiplier, total_cost, price, product_list)
 
         self.set_message_box(message, status)
+
+class TablePopup(QDialog):
+    def __init__(self, product_name, parent=None):
+        super().__init__(parent)
+
+        self.main = AppMain()
+
+        self.setWindowTitle(f"Product Details - {product_name}")
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        title = QLabel(f"Ingredients for: {product_name}")
+        title.setStyleSheet("font-size: 18px; font-weight: bold; padding: 10px;")
+        layout.addWidget(title)
+
+        self.table = QTableWidget()
+        layout.addWidget(self.table)
+
+        self.load_product_data(product_name)
+
+        close_btn = QPushButton("Close")
+        close_btn.setStyleSheet("padding: 5px;")
+        close_btn.clicked.connect(self.close)
+        layout.addWidget(close_btn)
+
+    def load_product_data(self, product_name):
+        try:
+            df = self.main.get_product_dataframe(product_name)
+
+            if df.empty:
+                self.table.setRowCount(1)
+                self.table.setColumnCount(1)
+                self.table.setItem(0, 0, QTableWidgetItem("No data available"))
+                return
+
+            self.table.setRowCount(len(df))
+            self.table.setColumnCount(len(df.columns))
+
+            self.table.setHorizontalHeaderLabels(df.columns.tolist())
+
+            for row_idx in range(len(df)):
+                for col_idx in range(len(df.columns)):
+                    value = str(df.iloc[row_idx, col_idx])
+                    item = QTableWidgetItem(value)
+                    self.table.setItem(row_idx, col_idx, item)
+
+            self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        except FileNotFoundError:
+            self.table.setRowCount(1)
+            self.table.setColumnCount(1)
+            self.table.setItem(0, 0, QTableWidgetItem(f"File not found for {product_name}"))
+        except Exception as e:
+            self.table.setRowCount(1)
+            self.table.setColumnCount(1)
+            self.table.setItem(0, 0, QTableWidgetItem(f"Error loading data: {str(e)}"))
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
