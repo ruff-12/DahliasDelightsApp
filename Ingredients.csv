@@ -1,1 +1,4 @@
-Ingredient,Density (g/ml),Store Brand,Store Cost (€),Store Amount,Store Unit
+Ingredient,Density (g/ml),Store Brand,Store Price (€),Store Amount,Store Unit
+All-purpose flour,0.53,Finis,1.99,1000,g
+Cake flour,0.44,Finis,1.99,1000,g
+Cornstarch,0.54,Finis,1.99,250,g
